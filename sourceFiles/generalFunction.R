@@ -270,6 +270,18 @@ typeConverter <- function(DT, convList, typeTo){
 }  
 
 
+##############################
+# targetGen <- function(DT, DaysPerformance=90, DQDays4Black=30, DQDays4White=7){
+#   in90days <- DT[, .(maxDaysFromDD = max(daysFromDD)), by="projectid"]
+#   hasEnoughPerformance <- in90days[maxDaysFromDD>=90, ]
+#   DT <- DT[projectid %in% hasEnoughPerformance$projectid & daysFromDD<=90, ]
+#   DT[, EverDPD15:=ifelse(Cur_Overdue_Days==15, 1, 0)]
+#   DT[, EverDPD07:=ifelse(Cur_Overdue_Days==7, 1, 0)]
+#   DT[, , by="project_id"]
+# }
+
+
+
 
 
 
