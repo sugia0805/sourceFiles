@@ -1,6 +1,6 @@
 MISSING_DEFAULT <- -99999
 source("./sourceFiles/generalFunction.R")
-box <- "E:/Seafiles/Jimu/Data/adhoc/"
+boxjimu <- "E:/Seafiles/Jimu/"
 boxdata <- "E:/Seafiles/Jimu/Data/"
 
 # general
