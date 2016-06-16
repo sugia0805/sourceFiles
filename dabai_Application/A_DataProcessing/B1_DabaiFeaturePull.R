@@ -22,7 +22,7 @@ audit_lnproduct <- data.table(audit_lnproduct)
 
 # serialNo
 business_apply <- data.table(business_apply)
-business_apply <- business_apply[BUSINESSTYPE==1007000402, ]
+business_apply <- business_apply[BUSINESSTYPE == 1007000402, ]
 
 # customerID, relationship
 customer_contact <- data.table(customer_contact)

@@ -85,9 +85,25 @@ banding <- function(trainDT, columnValue, columnBand, bands=seq(0, 1, 0.1)){
 }
 
 
+myKS <- function(DT, columnValue, columnBand, flgVar = "flgDPD", bandKS=seq(0,1,0.1)){
+  banding(DT, columnValue, columnBand, bands=bandKS)
+  DTPivot <- DT[, .("bad"=sum(get(flgVar)),
+                    "total"=.N),
+                  by=columnBand]
+  DTPivot[, badRate:=bad/total]
+  DTPivot[, good:=total-bad]
+  totalBad <- sum(DTPivot$bad)
+  totalGood <- sum(DTPivot$good)
+  DTPivot[, segBad:=bad/totalBad]
+  DTPivot[, segGood:=good/totalGood]
+  setorderv(DTPivot, "ScoreBand", order=1)
+  DTPivot[, cumGood:=runSum(segGood, n=1, cumulative = T)]
+  DTPivot[ScoreBand==1, ]
+}
 
 # 拉平data.table 
 # test<-dcast.data.table(DT, mainID(用来left join的那个) ~ 变量名, fun.agg=max, value.var = "变量值")
+# tvardictWide <- dcast.data.table(tvardict, financingprojectid + createtime ~ var_code, fun.agg=min, value.var = "var_val")
 
 
 ####################################################################################################行/列分析

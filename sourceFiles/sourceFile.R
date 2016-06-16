@@ -7,6 +7,7 @@ boxdata <- "E:/Seafiles/Jimu/Data/"
 library(RMySQL)
 library(ROracle)
 library(data.table)
+library(TTR)
 # library(reshape2) # for melt and cast
 library(pmml)
 library(stringr)

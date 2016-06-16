@@ -6,6 +6,8 @@ dabai201605 <- read.csv(paste0(boxdata, "Dabai/post_approval/Dabai201605.csv"))
 dabai201511 <- read.csv(paste0(boxdata, "Dabai/post_approval/Dabai20151112.csv"))
 dabai201508 <- read.csv(paste0(boxdata, "Dabai/post_approval/Dabai20150810.csv"))
 
+
+
 dabaiPostLoan <- rbind(dabai201601, dabai201602, dabai201603, dabai201604, dabai201605, 
                        dabai201508, dabai201511)
 dabaiPostLoan <- data.table(dabaiPostLoan)
