@@ -21,12 +21,19 @@ LostContactMapping <- data.table(LostContactMapping)
 
 
 ######################################################################################################################
+mobThreshold <- 180
+perfThreshold_LTmob <- 95
+badThreshold <- 15
+mobGoodThreshold_GTmob <- 3
+mobGoodThreshold_LTmob <- 3
+######################################################################################################################
+
 in180days <- dabaiPostLoan[, .(maxDaysFromDD = max(daysFromDD)), by="projectid"]
-hasEnoughPerformance <- in180days[maxDaysFromDD>=180, ]
+hasEnoughPerformance <- in180days[maxDaysFromDD>=mobThreshold, ]
 
 dabaiPostLoanGT180 <- dabaiPostLoan[projectid %in% hasEnoughPerformance$projectid, ]
-dabaiPostLoanGT180[, EverDPD15in180:=ifelse(Cur_Overdue_Days==15 & daysFromDD<=180, 1, 0)]
-dabaiPostLoanGT180[, EverDPD07:=ifelse(Cur_Overdue_Days==7, 1, 0)]
+dabaiPostLoanGT180[, EverDPD15in180:=ifelse(Cur_Overdue_Days==badThreshold & daysFromDD<=mobThreshold, 1, 0)]
+dabaiPostLoanGT180[, EverDPD07:=ifelse(Cur_Overdue_Days==mobGoodThreshold_GTmob, 1, 0)]
 
 dabai_pivotGT180 <- dabaiPostLoanGT180[, .("Ever15in180"=sum(EverDPD15in180),
                                            "Ever7" =sum(EverDPD07)), 
@@ -48,8 +55,8 @@ table(dabai_pivotGT180$flgDPD)
 
 dabaiPostLoanLT180 <- dabaiPostLoan[!(projectid %in% hasEnoughPerformance$projectid), ]
 dabaiPostLoanLT180 <- merge(dabaiPostLoanLT180, in180days, by="projectid", all.x=T)
-dabaiPostLoanLT180[, EverDPD15in180:=ifelse(Cur_Overdue_Days==15, 1, 0)]
-dabaiPostLoanLT180[, EverDPD03:=ifelse(Cur_Overdue_Days==3, 1, 0)]
+dabaiPostLoanLT180[, EverDPD15in180:=ifelse(Cur_Overdue_Days==badThreshold, 1, 0)]
+dabaiPostLoanLT180[, EverDPD03:=ifelse(Cur_Overdue_Days==mobGoodThreshold_LTmob, 1, 0)]
 
 
 dabai_pivotLT180 <- dabaiPostLoanLT180[, .("Ever15in180"=sum(EverDPD15in180),
@@ -57,7 +64,7 @@ dabai_pivotLT180 <- dabaiPostLoanLT180[, .("Ever15in180"=sum(EverDPD15in180),
                                          "MaxPerf" =max(maxDaysFromDD)), 
                                      by="projectid"]
 
-dabai_pivotLT180[, flgDPD:=ifelse(Ever15in180>0, 1, ifelse(EverDPD3==0 & MaxPerf >= 95, 0, -1))]
+dabai_pivotLT180[, flgDPD:=ifelse(Ever15in180>0, 1, ifelse(EverDPD3==0 & MaxPerf >= perfThreshold_LTmob, 0, -1))]
 
 table(dabai_pivotLT180$flgDPD)
 # -1    0    1 

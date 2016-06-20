@@ -42,8 +42,8 @@ for(con in all_cons)
 
 # Jimu data queries
 drv <- dbDriver("MySQL")
-dmAnalCon <- dbConnect(drv, user="dumiao_analysis", password="analysis4321",
-              dbname="dumiao_analysis", host="172.19.1.221", port=9900, encoding = getOption("utf8"))
+# dmAnalCon <- dbConnect(drv, user="dumiao_analysis", password="analysis4321",
+#               dbname="dumiao_analysis", host="172.19.1.221", port=9900, encoding = getOption("utf8"))
 ruleEngCon <- dbConnect(drv, user="dan.xu", password="bTH68b2MjQu8JZA",
                    dbname="rule_engineer", host="172.16.2.28", port=3311, encoding = getOption("utf8"))
 dmYewuCon <- dbConnect(drv, user="dan.xu", password="bTH68b2MjQu8JZA",

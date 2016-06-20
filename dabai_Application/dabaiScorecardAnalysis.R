@@ -52,29 +52,64 @@ dabaiScoreMaster <- dabaiScoreMaster[as.Date(OCCURDATE)<as.Date('2016-06-01'),]
 dabaiAnalysis_KS <- dabaiScoreMaster[flgDPD %in% c(0,1), ]
 dabaiAnalysis_KS <- dabaiAnalysis_KS[!is.na(EVALUATESCORE),]
 
-banding(dabaiAnalysis_KS, "EVALUATESCORE", "ScoreBand")
-test <- dabaiAnalysis_KS[!is.na(ScoreBand)]
-testPivot <- test[, .("bad"=sum(flgDPD),
-                      "total"=.N),
-                  by="ScoreBand"]
-testPivot[, badRate:=bad/total]
+db1 <- dabaiAnalysis_KS[OCCURDATE<=as.Date('2015-9-30'),]
+db2 <- dabaiAnalysis_KS[OCCURDATE>=as.Date('2015-10-1') & OCCURDATE<=as.Date('2015-10-31'),]
+db3 <- dabaiAnalysis_KS[OCCURDATE>=as.Date('2015-11-1') & OCCURDATE<=as.Date('2015-11-30'),]
+db4 <- dabaiAnalysis_KS[OCCURDATE>=as.Date('2015-12-1') & OCCURDATE<=as.Date('2015-12-31'),]
+db5 <- dabaiAnalysis_KS[OCCURDATE>as.Date('2016-1-1') & OCCURDATE<=as.Date('2016-1-31'),]
+db6 <- dabaiAnalysis_KS[OCCURDATE>as.Date('2016-2-1'),]
+
+# KS
+myKS(db1, "EVALUATESCORE", "ScoreBand", bandKS = seq(0,1,0.2))
+myKS(db2, "EVALUATESCORE", "ScoreBand", bandKS = seq(0,1,0.2))
+myKS(db3, "EVALUATESCORE", "ScoreBand", bandKS = seq(0,1,0.2))
+myKS(db4, "EVALUATESCORE", "ScoreBand", bandKS = seq(0,1,0.2))
+myKS(db5, "EVALUATESCORE", "ScoreBand", bandKS = seq(0,1,0.2))
+myKS(db6, "EVALUATESCORE", "ScoreBand", bandKS = seq(0,1,0.2))
+myKS(dabaiAnalysis_KS, "EVALUATESCORE", "ScoreBand", bandKS = seq(0,1,0.2))
+
+# avgScore
+mean(db1$EVALUATESCORE)
+mean(db2$EVALUATESCORE)
+mean(db3$EVALUATESCORE)
+mean(db4$EVALUATESCORE)
+mean(db5$EVALUATESCORE)
+mean(db6$EVALUATESCORE)
+mean(dabaiAnalysis_KS$EVALUATESCORE)
 
 
 
+# PSI by month
+dabaiAnalysis_PSI <- copy(dabaiScoreMaster)
+setnames(dabaiAnalysis_PSI, 
+         c("1.1","1.2","1.3","2.1","2.2","2.3","2.4","2.5","3.1","3.2","3.3","3.4","3.5","3.6"),
+         c("age","sex","edu","AvgCCOutstanding",	"CCUtilization",	"RecognizedIncome",	"BadRate3Months",	"CreditTerm",	"MailAddress",	"WorkDuty",	"MaxOverDue",	"hasHouse",	"hasCard",	"MarriageStatus"
+))
 
 
+dbPSI1 <- dabaiAnalysis_PSI[OCCURDATE<=as.Date('2015-10-31'), ]
+dbPSI1[, isCurrMon:=ifelse(OCCURDATE<=as.Date('2015-9-30'), 0, 1)]
 
+dbPSI2 <- dabaiAnalysis_PSI[OCCURDATE<=as.Date('2015-11-30'), ]
+dbPSI2[, isCurrMon:=ifelse(OCCURDATE<=as.Date('2015-10-31'), 0, 1)]
 
+dbPSI3 <- dabaiAnalysis_PSI[OCCURDATE<=as.Date('2015-12-31'), ]
+dbPSI3[, isCurrMon:=ifelse(OCCURDATE<=as.Date('2015-11-30'), 0, 1)]
 
+dbPSI4 <- dabaiAnalysis_PSI[OCCURDATE<=as.Date('2016-1-31'), ]
+dbPSI4[, isCurrMon:=ifelse(OCCURDATE<=as.Date('2015-12-31'), 0, 1)]
 
+dbPSI5 <- dabaiAnalysis_PSI[OCCURDATE<=as.Date('2016-2-29'), ]
+dbPSI5[, isCurrMon:=ifelse(OCCURDATE<=as.Date('2016-1-31'), 0, 1)]
 
+dbPSI6 <- dabaiAnalysis_PSI[OCCURDATE<=as.Date('2016-3-31'), ]
+dbPSI6[, isCurrMon:=ifelse(OCCURDATE<=as.Date('2016-2-29'), 0, 1)]
 
+dbPSI7 <- dabaiAnalysis_PSI[OCCURDATE<=as.Date('2016-4-30'), ]
+dbPSI7[, isCurrMon:=ifelse(OCCURDATE<=as.Date('2016-3-31'), 0, 1)]
 
-
-
-
-
-
+dbPSI8 <- dabaiAnalysis_PSI[OCCURDATE<=as.Date('2016-5-31'), ]
+dbPSI8[, isCurrMon:=ifelse(OCCURDATE<=as.Date('2016-4-30'), 0, 1)]
 
 
 

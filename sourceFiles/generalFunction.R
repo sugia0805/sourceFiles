@@ -85,20 +85,28 @@ banding <- function(trainDT, columnValue, columnBand, bands=seq(0, 1, 0.1)){
 }
 
 
-myKS <- function(DT, columnValue, columnBand, flgVar = "flgDPD", bandKS=seq(0,1,0.1)){
-  banding(DT, columnValue, columnBand, bands=bandKS)
+myKS <- function(DT, scoreColName, scoreBandColName, flgVar = "flgDPD", bandKS=seq(0,1,0.1)){
+  banding(DT, scoreColName, scoreBandColName, bands=bandKS)
   DTPivot <- DT[, .("bad"=sum(get(flgVar)),
                     "total"=.N),
-                  by=columnBand]
+                  by=scoreBandColName]
   DTPivot[, badRate:=bad/total]
   DTPivot[, good:=total-bad]
   totalBad <- sum(DTPivot$bad)
   totalGood <- sum(DTPivot$good)
   DTPivot[, segBad:=bad/totalBad]
   DTPivot[, segGood:=good/totalGood]
-  setorderv(DTPivot, "ScoreBand", order=1)
+  setorderv(DTPivot, scoreBandColName, order=1)
+  DTPivot[, cumBad:=runSum(segBad, n=1, cumulative = T)]
+  DTPivot[get(scoreBandColName)==1, cumBad:=segBad]
   DTPivot[, cumGood:=runSum(segGood, n=1, cumulative = T)]
-  DTPivot[ScoreBand==1, ]
+  DTPivot[get(scoreBandColName)==1, cumGood:=segGood]
+  ks <- max(DTPivot$cumBad-DTPivot$cumGood)
+  return(ks)
+}
+
+myPSI <- function(DTOld, DTNew, binColName){
+  
 }
 
 # 拉平data.table 
