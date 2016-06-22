@@ -6,7 +6,10 @@ monthDiff <- Vectorize(function(startMth, endMth){
   return((as.numeric(substr(endMth,1,4))-as.numeric(substr(startMth,1,4)))*12+(as.numeric(substr(endMth,5,6))-as.numeric(substr(startMth,5,6))))
 })
 
-Mode <- function(x) {
+Mode <- function(x, na.rm=F) {
+  if(na.rm){
+    x <- x[!is.na(x)]
+  }
   ux <- unique(x)
   ux[which.max(tabulate(match(x, ux)))]
 }
@@ -105,8 +108,35 @@ myKS <- function(DT, scoreColName, scoreBandColName, flgVar = "flgDPD", bandKS=s
   return(ks)
 }
 
-myPSI <- function(DTOld, DTNew, binColName){
+myPSI <- function(DTOld, DTNew, binColName, bandPSI=seq(0,1,0.1)){
+  DTOld <- DTOld[!is.na(get(binColName)),]
+  bandingOldPopulation <- banding(DTOld, binColName, "binPSI", bands=bandPSI)
   
+  comparisonDF <- copy(bandingOldPopulation)
+  
+  # 把bandingOldPopulation做成Woe assign里面的binningDF格式方便套用
+  bandingOldPopulation[, varName:=binColName]
+  bandingOldPopulation[, type:="continuous"]
+  setnames(bandingOldPopulation, c("maxScore", "binPSI"), c("maxValue", "WoE"))
+  woeTransName <- paste0("w_", binColName)
+  
+  binnedDTNew <- woeAssign(DTNew, binColName, bandingOldPopulation)
+  setnames(binnedDTNew, woeTransName, "binPSI")
+  DTNew_pivot <- binnedDTNew[!is.na(binPSI), .("totalCust_New" = .N), by="binPSI"]
+  
+  # 把新旧population合并起来
+  comparisonDF <- merge(comparisonDF[, c("binPSI","maxScore","minScore","totalCust"), with=F], DTNew_pivot, by="binPSI")
+  
+  # 开始算PSI!
+  comparisonDF[, pctgOld:=totalCust/sum(totalCust)]
+  comparisonDF[, pctgNew:=totalCust_New/sum(totalCust_New)]
+  comparisonDF[, NewMinusOld:=pctgNew-pctgOld]
+  comparisonDF[, LogNewDivideOld:=log(pctgNew/pctgOld)]
+  comparisonDF[, kPSI:=NewMinusOld * LogNewDivideOld]
+  
+  PSI <- sum(comparisonDF$kPSI)
+  
+  result <- list(PSITable=comparisonDF, PSI=PSI)
 }
 
 # 拉平data.table 

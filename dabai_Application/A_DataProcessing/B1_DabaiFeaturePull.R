@@ -84,16 +84,64 @@ masterCust <- merge(customer_info, ind_info, by.x="customer_info_CUSTOMERID", by
 #############################################################################
 masterData <- merge(masterData, masterCust, by.x="business_apply_CUSTOMERID", by.y="customer_info_CUSTOMERID", all.x=T)
 
-# 去掉87+1808个保单贷=1或isbdloan缺失的申请
-masterData <- masterData[business_apply_ISBDLOAN==2, ]
+# 去掉87个保单贷=1的申请
+# masterData <- masterData[is.na(business_apply_ISBDLOAN) | business_apply_ISBDLOAN!=1, ]
 
 projectIDMapping <- martq("select ProjectID, FinancingID from rdb_data_opush.t_retail_loan_performance_2 group by 1,2")
 
 masterDataTest <- merge(masterData, projectIDMapping, by.x="business_apply_JIMUID", by.y="FinancingID", all.x=T)
 
+
+################################################################
+# 弱变量
+################################################################
+# customer contact
+# 1为工作朋友关系, 0为亲属关系
+customer_contact[, relationship:=ifelse(customer_contact_RELATIONSHIP %in% c('07030','07020','07010','0040','0020'), 1, 0)]
+
+customer_contact_pivot <- customer_contact[, .("customer_contact_KNOWLOAN"=Mode(customer_contact_KNOWLOAN, na.rm=T),
+                                               "customer_contact_SEX"=Mode(customer_contact_SEX, na.rm=T),
+                                               "customer_contact_RELATIONSHIP_CUSTOMIZED"=Mode(relationship, na.rm=T)
+                                               )
+                                           , by="customer_contact_CUSTOMERID"]
+
+masterDataTest <- merge(masterDataTest, customer_contact_pivot, by.x="business_apply_CUSTOMERID", by.y="customer_contact_CUSTOMERID", all.x=T)
+
+# customer relative
+# customer_relative_pivot <- customer_relative[, .("customer_relative_FAMIADDSTATUS"=Mode(customer_relative_FAMIADDSTATUS, na.rm=T)
+#                                               )
+#                                               , by="customer_relative_CUSTOMERID"]
+# masterDataTest <- merge(masterDataTest, customer_relative_pivot, by.x="business_apply_CUSTOMERID", by.y="customer_relative_CUSTOMERID", all.x=T)
+
+
+# debt info, 做成"是否自报负债"变量
+# 0为车房贷,1为消费贷,2为其他贷
+# debt_info[, loantypeCUSTOMIZED:=ifelse(debt_info_LOANTYPE %in% c("0130","070","0140","080"), 0, ifelse(debt_info_LOANTYPE == "0150", 1, 2))]
+# debt_info[, ensuretypeCUSTOMIZED:=ifelse(debt_info_ENSURETYPE %in% c("030","040"), "030", debt_info_ENSURETYPE)]
+# debt_info[, guaranteestatusCUSTOMIZED:=ifelse(debt_info_GUARANTEESTATUS %in% c("02","090"), 0, 1)]
+# 
+# debt_info_pivot <- debt_info[, .("debt_info_majorDebtType"=Mode(debt_info_DEBTTYPE, na.rm=T),
+#                                  "debt_info_majorLoanType"=Mode(loantypeCUSTOMIZED, na.rm=T),
+#                                  "debt_info_ensuretypeCUSTOMIZED"=Mode(ensuretypeCUSTOMIZED, na.rm=T),
+#                                  "debt_info_guaranteestatusCUSTOMIZED"=Mode(guaranteestatusCUSTOMIZED, na.rm=T)
+#                                  )
+#                              , by="debt_info_CUSTOMERID"]
+# 
+# 
+# masterDataTest <- merge(masterDataTest, customer_relative_pivot, by.x="business_apply_CUSTOMERID", by.y="customer_relative_CUSTOMERID", all.x=T)
+# 
+# 
+masterDataTest[, debt_info_selfClaimDebt:=ifelse(business_apply_CUSTOMERID %in% debt_info$debt_info_CUSTOMERID, 1, 0)]
+
+
+
+
+
+
 ################
 masterDataTest
-customer_contact
-customer_relative
-debt_info
+# customer_contact
+# customer_relative
+# debt_info
 
+k<-anshuoq("SELECT  *  from  cmss.code_library ")

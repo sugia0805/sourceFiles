@@ -80,7 +80,7 @@ table(dabai_pivotLT180$flgDPD)
 dabai_target <- rbind(dabai_pivotLT180[, c("projectid","flgDPD"), with=F], 
                       dabai_pivotGT180[, c("projectid","flgDPD"), with=F])
 
-
+table(dabai_target$flgDPD)
 
 ######################################################################################
 dabai_target
