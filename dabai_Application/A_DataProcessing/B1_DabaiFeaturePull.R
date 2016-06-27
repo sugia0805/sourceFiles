@@ -42,6 +42,7 @@ debt_info <- data.table(debt_info)
 # customerID
 ind_info <- data.table(ind_info)
 
+
 #############################################################################
 names(audit_lnproduct) <- paste0("audit_lnproduct_", names(audit_lnproduct))
 names(business_apply) <- paste0("business_apply_", names(business_apply))
@@ -52,6 +53,14 @@ names(customer_relative) <- paste0("customer_relative_", names(customer_relative
 names(debt_info) <- paste0("debt_info_", names(debt_info))
 names(ind_info) <- paste0("ind_info_", names(ind_info))
 
+ind_info[ind_info_COMMADD=='@@@mn7FTeCegonk03vwBpsh8DJPs6kI/6dYDvtwA76a/9g=@@@/dYtEKAa5GrlZhmBx2H9Dg==@@@mPAe3Ho2jH1/D6zvGhFPLw==@@@txnbrDwNAMdLaGr/CsvXoognrW/Na5NouxqJgm1316I+XawnYAbj/nhXPzvwbghI', ind_info_COMMADD:=1]
+ind_info[ind_info_COMMADD=='@@@oWAGotW/TvafcEe557Mhd2mKevkWAOqYB/htU9fPNmw=@@@Wzdj1Q0KBAA9B9FqY2UB9A==@@@vEVLvUN0JzYj8a1TV446gw==@@@Yw5h0FoW0NwzOsKbMxj6Ffs0or9tdpvC9EYu6cnvLho=', ind_info_COMMADD:=2]
+ind_info[ind_info_COMMADD=='@@@oWAGotW/TvafcEe557Mhd2mKevkWAOqYB/htU9fPNmw=@@@Wzdj1Q0KBAA9B9FqY2UB9A==@@@vEVLvUN0JzYj8a1TV446gw==@@@YFXufehE+EXCq2xVsfbwqN9gDNkqxGs1Y8Jg01iJcGo=', ind_info_COMMADD:=3]
+
+ind_info[ind_info_COMMADD=='@@@oWAGotW/TvafcEe557Mhd2mKevkWAOqYB/htU9fPNmw=@@@Wzdj1Q0KBAA9B9FqY2UB9A==@@@vEVLvUN0JzYj8a1TV446gw==@@@MXyor4PsthbbocA1+amaW9OVgX85H/4WizNQ+wlkJDE=', ind_info_COMMADD:=1]
+ind_info[ind_info_COMMADD=='@@@mn7FTeCegonk03vwBpsh8DJPs6kI/6dYDvtwA76a/9g=@@@/dYtEKAa5GrlZhmBx2H9Dg==@@@mPAe3Ho2jH1/D6zvGhFPLw==@@@ShYT6JrHhSqZWo2I7nb81wnvfcwRzO3HOrojyy0qOOIMNe/3bkoCiBvejuqOLmdc\r\n', ind_info_COMMADD:=2]
+ind_info[ind_info_COMMADD=='@@@mn7FTeCegonk03vwBpsh8DJPs6kI/6dYDvtwA76a/9g=@@@/dYtEKAa5GrlZhmBx2H9Dg==@@@mPAe3Ho2jH1/D6zvGhFPLw==@@@txnbrDwNAMdLaGr/CsvXoognrW/Na5NouxqJgm1316I+XawnYAbj/nhXPzvwbghI\r\n', ind_info_COMMADD:=1]
+ind_info[ind_info_COMMADD=='01', ind_info_COMMADD:=1]
 
 masterData <- merge(business_apply, audit_lnproduct, by.x="business_apply_SERIALNO", by.y = "audit_lnproduct_SERIALNO", all.x=T)
 masterData <- merge(masterData, customer_credit, by.x="business_apply_SERIALNO", by.y = "customer_credit_SERIALNO", all.x=T)

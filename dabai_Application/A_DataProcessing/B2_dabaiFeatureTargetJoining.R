@@ -88,6 +88,7 @@ dabaiData <-masterDataTest[, c("audit_lnproduct_APPLYAMT",
                    "ind_info_BIRTHDAY",
                    "ind_info_CHILDRENNO",
                    "ind_info_CHILDRENSTATUS",
+                   "ind_info_COMMADD",
                    "ind_info_EDUEXPERIENCE",
                    "ind_info_FAMILYADD",
                    "ind_info_FAMILYSTATUS",
@@ -141,4 +142,10 @@ dabaiFeaturesAnalysis2 <- featureAnalysis(dabaiData, exclude=c("flgDPD","Project
 
 write.csv(dabaiFeaturesAnalysis2, paste0(boxdata, "dabaiAnalysis.csv"))
 
+dabaiData[, business_apply_TERMMONTH:=NULL]
 
+
+
+
+#################################################
+dabaiData
