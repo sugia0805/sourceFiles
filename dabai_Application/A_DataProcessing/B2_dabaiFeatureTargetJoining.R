@@ -38,10 +38,11 @@ dabaiData <-masterDataTest[, c("audit_lnproduct_APPLYAMT",
                    "business_apply_CUSTOMERTIME",
                    "business_apply_MONTH",
                    "business_apply_OTHERPURPOSE",
+                   "business_apply_OCCURDATE",
                    "business_apply_PURPOSE",
                    "business_apply_SALESCANAL",
                    "business_apply_TEMPSAVEFLAG",
-                   "business_apply_TERMMONTH",
+                   # "business_apply_TERMMONTH",
                    "customer_contact_KNOWLOAN",
                    "customer_contact_RELATIONSHIP_CUSTOMIZED",
                    "customer_contact_SEX",
@@ -138,14 +139,21 @@ dabaiFeaturesAnalysis <- featureAnalysis(dabaiData, exclude="flgDPD")
 missingAfterJoin <- unique(dabaiFeaturesAnalysis[dabaiFeaturesAnalysis$MissPctg==1, ]$VarName)
 
 dabaiData[, c(missingAfterJoin):=NULL]
+
+# 去掉一些杂乱无法归类的文字变量
+dabaiData[, business_apply_OTHERPURPOSE:=NULL]
+
+
 dabaiFeaturesAnalysis2 <- featureAnalysis(dabaiData, exclude=c("flgDPD","ProjectID"))
 
-write.csv(dabaiFeaturesAnalysis2, paste0(boxdata, "dabaiAnalysis.csv"))
+# write.csv(dabaiFeaturesAnalysis2, paste0(boxdata, "dabaiAnalysis.csv"))
 
-dabaiData[, business_apply_TERMMONTH:=NULL]
 
 
 
 
 #################################################
 dabaiData
+
+
+

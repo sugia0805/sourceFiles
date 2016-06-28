@@ -84,3 +84,7 @@ table(dabai_target$flgDPD)
 
 ######################################################################################
 dabai_target
+
+rm(dabai_pivotLT180, dabaiPostLoanLT180, dabai_pivotGT180, dabaiPostLoanGT180, dabaiPostLoan)
+rm(dabai201508, dabai201511, dabai201605, dabai201604, dabai201603, dabai201602, dabai201601)
+rm(hasEnoughPerformance, in180days, LostContactMapping)

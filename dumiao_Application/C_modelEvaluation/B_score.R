@@ -5,9 +5,10 @@ featureAnalysis(oos, exclude = c("service_id", "longTimeShutdown"))
 scoreCard<-read.csv(paste0(boxdata, "scoreCard.csv"))
 scoreCard<-data.table(scoreCard)
 scoreCard[maxValue==-100000, maxValue:=-99999]
+scoreCard[, X:=NULL]
+
 oos<-data.table(oos)
 
-scoreCard[, X:=NULL]
 
 scoredOOS<-scoreAssignAuto(oos, scoreCard, intercept=508)
 

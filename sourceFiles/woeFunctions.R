@@ -186,25 +186,25 @@ scoreCalc <- function(binningDF, lmModel, neutralForMissing=T, b=500, p=50, o=0.
 }
 
 # scoringDF requires type, varName, varScore at least
-scoreAssign <- function(DT, X, scoringDF){
-  assignScore <- scoringDF[varName==X]
-  scoreTransName <- paste0("s_", X)
+scoreAssign <- function(DT, scoreColName, scoringDF){
+  assignScore <- scoringDF[varName==scoreColName,]
+  scoreTransName <- paste0("s_", scoreColName)
   if(nrow(assignScore)==0){
-    print(paste0(X, " is not in scoring list."))
+    print(paste0(scoreColName, " is not in scoring list."))
     return(DT)
   }
   if(assignScore$type[1]=="continuous"){
     assignScore[, maxValue:=as.numeric(maxValue)]
     setorderv(assignScore, "maxValue", -1)
     for(i in 1:nrow(assignScore)){
-      DT[get(X) <= assignScore[i,]$maxValue, scoreTransName:=assignScore[i,]$varScore, with=F]
+      DT[get(scoreColName) <= assignScore[i,]$maxValue, scoreTransName:=assignScore[i,]$varScore, with=F]
     }
   }else{
     for(i in 1:nrow(assignScore)){
-      DT[get(X) == assignScore[i,]$maxValue, scoreTransName:=assignScore[i,]$varScore, with=F]
+      DT[get(scoreColName) == assignScore[i,]$maxValue, scoreTransName:=assignScore[i,]$varScore, with=F]
     }
   }
-  print(paste0("############## Score for ", X, " assigned #####################"))
+  print(paste0("############## Score for ", scoreColName, " assigned #####################"))
   
   DT[, "s_totalScore":=s_totalScore + get(scoreTransName), with=F]
   return(DT)
