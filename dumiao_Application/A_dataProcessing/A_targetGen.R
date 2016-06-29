@@ -124,7 +124,9 @@ target<-rbind(target1Final[, c("project_id", "Loan_Date", "tenor", "flgDPD"), wi
               target2Final[, c("project_id", "Loan_Date", "tenor", "flgDPD"), with=F], 
               target3Final[, c("project_id", "Loan_Date", "tenor", "flgDPD"), with=F])
 
-# targetTotal<-rbind(target1, target2, target3)
+targetTotal<-rbind(target1[, c("project_id", "Loan_Date", "tenor", "flgDPD"), with=F], 
+              target2[, c("project_id", "Loan_Date", "tenor", "flgDPD"), with=F], 
+              target3[, c("project_id", "Loan_Date", "tenor", "flgDPD"), with=F])
 
 ################################################################################
 # # 去除失联人员
