@@ -9,7 +9,7 @@ t.rule_id,
 t.input_val
 from t_mod_score t
 where index_id in (1000031.0,1000012,1000018,1000036.2,1000039)
-and stamp between '2016-01-01' and '2016-05-15'
+-- and stamp between '2016-01-01' and '2016-05-15'
                 ")
 
 # run in database
@@ -27,7 +27,8 @@ when province in ('云南省','河北省','江苏省','陕西省','江西省','�
                   '云南','河北','江苏','陕西','江西','浙江','黑龙江','四川','天津','海南','甘肃') then 4
  end as provinceTransformedBin
 from loan_apply
-            where createtime between '2016-01-01' and '2016-05-15'")
+            -- where createtime between '2016-01-01' and '2016-05-15'
+            ")
 write.csv(cities, paste0(boxdata, "cities.csv"))
 # cities<-read.csv(paste0(boxdata, "cities.csv"))
 cities<-as.data.table(cities)

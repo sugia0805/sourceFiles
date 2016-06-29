@@ -62,8 +62,8 @@ ind_info[ind_info_COMMADD=='@@@mn7FTeCegonk03vwBpsh8DJPs6kI/6dYDvtwA76a/9g=@@@/d
 ind_info[ind_info_COMMADD=='@@@mn7FTeCegonk03vwBpsh8DJPs6kI/6dYDvtwA76a/9g=@@@/dYtEKAa5GrlZhmBx2H9Dg==@@@mPAe3Ho2jH1/D6zvGhFPLw==@@@txnbrDwNAMdLaGr/CsvXoognrW/Na5NouxqJgm1316I+XawnYAbj/nhXPzvwbghI\r\n', ind_info_COMMADD:=1]
 ind_info[ind_info_COMMADD=='01', ind_info_COMMADD:=1]
 
-masterData <- merge(business_apply, audit_lnproduct, by.x="business_apply_SERIALNO", by.y = "audit_lnproduct_SERIALNO", all.x=T)
-masterData <- merge(masterData, customer_credit, by.x="business_apply_SERIALNO", by.y = "customer_credit_SERIALNO", all.x=T)
+masterData <- merge(business_apply, audit_lnproduct, by.x="business_apply_SERIALNO", by.y = "audit_lnproduct_OBJECTNO", all.x=T)
+masterData <- merge(masterData, customer_credit, by.x="business_apply_SERIALNO", by.y = "customer_credit_RELATIVECERTID2", all.x=T)
 
 
 masterCust <- merge(customer_info, ind_info, by.x="customer_info_CUSTOMERID", by.y="ind_info_CUSTOMERID", all.x=T)

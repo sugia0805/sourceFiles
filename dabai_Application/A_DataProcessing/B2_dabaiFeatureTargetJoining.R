@@ -146,9 +146,10 @@ dabaiData[, business_apply_OTHERPURPOSE:=NULL]
 
 dabaiFeaturesAnalysis2 <- featureAnalysis(dabaiData, exclude=c("flgDPD","ProjectID"))
 
-# write.csv(dabaiFeaturesAnalysis2, paste0(boxdata, "dabaiAnalysis.csv"))
+write.csv(dabaiFeaturesAnalysis2, paste0(boxdata, "dabaiAnalysis.csv"))
 
-
+dabaiFeaturesAnalysis2 <- data.table(dabaiFeaturesAnalysis2)
+dabaiFeaturesAnalysis2[, isDetailCredit:=ifelse(MissPctg>0.5, 1, 0)]
 
 
 

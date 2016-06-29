@@ -88,7 +88,7 @@ banding <- function(trainDT, columnValue, columnBand, bands=seq(0, 1, 0.1)){
 }
 
 
-myKS <- function(DT, scoreColName, scoreBandColName, flgVar = "flgDPD", bandKS=seq(0,1,0.1)){
+myKS <- function(DT, scoreColName, scoreBandColName = "scoreBand", flgVar = "flgDPD", bandKS=seq(0,1,0.1)){
   banding(DT, scoreColName, scoreBandColName, bands=bandKS)
   DTPivot <- DT[, .("bad"=sum(get(flgVar)),
                     "total"=.N),
