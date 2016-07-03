@@ -50,10 +50,10 @@ dmYewuCon <- dbConnect(drv, user="dan.xu", password="bTH68b2MjQu8JZA",
                      dbname="dumiao", host="172.16.2.28", port=3311, encoding = getOption("utf8"))
 
 dataMartCon <- dbConnect(drv, user="dan.xu", password="bTH68b2MjQu8JZA",
-                   host="172.16.3.12", port=3324, encoding = getOption("utf8"))
+                   host="172.16.3.55", port=3324, encoding = getOption("utf8"))
 
-# jdzCon <- dbConnect(drv, user="dan.xu", password="bTH68b2MjQu8JZA",
-#                          host="172.16.4.43", port=3310, encoding = getOption("utf8"))
+jdzCon <- dbConnect(drv, user="dan.xu", password="bTH68b2MjQu8JZA",
+                         host="172.16.4.42", port=3310, encoding = getOption("utf8"))
 
 drvORA <- dbDriver("Oracle")
 ORAhost <- "172.16.3.18"
@@ -89,11 +89,11 @@ martq <- function(query) {
   data.table(resultDF)
 }
 
-# jdzq <- function(query) {
-#   dbGetQuery(dataMartCon, "SET NAMES 'GBK'")
-#   resultDF <- dbGetQuery(jdzCon, query)
-#   data.table(resultDF)
-# }
+jdzq <- function(query) {
+  dbGetQuery(dataMartCon, "SET NAMES 'GBK'")
+  resultDF <- dbGetQuery(jdzCon, query)
+  data.table(resultDF)
+}
 
 anshuoq <- function(query) {
   resultDF <- dbGetQuery(anshuoCon, query)
