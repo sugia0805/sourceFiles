@@ -14,6 +14,14 @@ Mode <- function(x, na.rm=F) {
   ux[which.max(tabulate(match(x, ux)))]
 }
 
+myNPV <- function(TicketSize, APR, Tenor, UpfrontFee, COF, CORate, MKTCost, UWCost, E2ERate, CPS = T){
+  GrossMargin <- (APR/12 - COF/12) * Tenor +  UpfrontFee - CORate
+  NOI <- GrossMargin - ifelse(CPS, MKTCost, (MKTCost/E2ERate)/TicketSize) - (UWCost/E2ERate)/TicketSize
+  NPV <- TicketSize * NOI
+  return(NPV)
+}
+
+
 ######################################################################################################## Parse 
 # Parse strings, default pattern: targetText:Value(<>) 
 # 先用str_extract取targetText之后的一段string，然后用strStart, strEnd截targetText的值
@@ -67,24 +75,27 @@ grouping <- function(dataVector, groups=10){
 
 
 # 造个scoreband放在新的column里
-banding <- function(trainDT, columnValue, columnBand, bands=seq(0, 1, 0.1)){
+banding <- function(trainDT, columnValue, columnBand, columnTarget = NULL, bands=seq(0, 1, 0.1)){
   trainDT[, columnBand:=as.integer(cut(get(columnValue), quantile(get(columnValue), probs=bands, na.rm=T), include.lowest=TRUE)), with=F]
   scoreTable1 <- trainDT[, .("maxScore"=max(get(columnValue))
                        ,"minScore"=min(get(columnValue))
                        ,"totalCust"=.N
                        ),
                    by=c(columnBand)]
-  scoreTable2 <- trainDT[, .("badCust"=sum(as.numeric(as.character(flgDPD)))),
-                      by=c(columnBand)]
-  scoreTable <- merge(scoreTable1, scoreTable2, by=columnBand)
-  scoreTable[, badRate:=badCust/totalCust]
+  if(!is.null(columnTarget)){
+    scoreTable2 <- trainDT[, .("badCust"=sum(as.numeric(as.character(get(columnTarget))))),
+                           by=c(columnBand)]
+    scoreTable <- merge(scoreTable1, scoreTable2, by=columnBand)
+    scoreTable[, badRate:=badCust/totalCust]
+    return(scoreTable)
+  }
   
   # if(!is.null(testDT)){
   #   for(i in 1:nrow(scoreTable)){
   #     DT[get(columnValue) <= scoreTable[i,]$maxScore & get(columnValue) >= scoreTable[i,]$minScore, woeTransName:=assignWoE[i,]$WoE, with=F]
   #   }
   # }
-  return(scoreTable)
+  return(scoreTable1)
 }
 
 
