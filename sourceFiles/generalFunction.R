@@ -1,5 +1,5 @@
 
-source("./sourceFiles/woeFunctions.R")
+source("../sourceFiles//sourceFiles/woeFunctions.R")
 
 
 monthDiff <- Vectorize(function(startMth, endMth){
@@ -14,13 +14,14 @@ Mode <- function(x, na.rm=F) {
   ux[which.max(tabulate(match(x, ux)))]
 }
 
-myNPV <- function(TicketSize, APR, Tenor, UpfrontFee, COF, CORate, MKTCost, UWCost, E2ERate, CPS = T){
-  GrossMargin <- (APR/12 - COF/12) * Tenor +  UpfrontFee - CORate
+myNPV <- function(TicketSize, feeRate, Tenor, UpfrontFee, CORate, MKTCost, UWCost, ApprovalRate, TakeupRate, CPS = T){
+  E2ERate <- ApprovalRate * TakeupRate
+  
+  GrossMargin <- feeRate* Tenor +  UpfrontFee - CORate/12*Tenor
   NOI <- GrossMargin - ifelse(CPS, MKTCost, (MKTCost/E2ERate)/TicketSize) - (UWCost/E2ERate)/TicketSize
   NPV <- TicketSize * NOI
   return(NPV)
 }
-
 
 ######################################################################################################## Parse 
 # Parse strings, default pattern: targetText:Value(<>) 
