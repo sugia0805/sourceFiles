@@ -1,10 +1,16 @@
 MISSING_DEFAULT <- -99999
+
+# project ids mapping rules
+# Project ID
+# JimuID = project_ID = financingprojectid
+
+# install.packages("quantmod", "/usr/local/lib/R/site-library")
+
 source("../sourceFiles/sourceFiles/generalFunction.R")
 boxdata <- "E:/Seafiles/Data/"
 
 # general
 library(RMySQL)
-library(ROracle)
 library(data.table)
 library(TTR)
 # library(reshape2) # for melt and cast
@@ -54,15 +60,26 @@ dataMartCon <- dbConnect(drv, user="dan.xu", password="bTH68b2MjQu8JZA",
 jdzCon <- dbConnect(drv, user="dan.xu", password="bTH68b2MjQu8JZA",
                          host="172.16.4.42", port=3310, encoding = getOption("utf8"))
 
-drvORA <- dbDriver("Oracle")
-ORAhost <- "172.16.3.18"
-ORAport <- 1521
-ORAsid <- "orcl_std"
-connect.string <- paste(
-  "(DESCRIPTION=",
-  "(ADDRESS=(PROTOCOL=tcp)(HOST=", ORAhost, ")(PORT=", ORAport, "))",
-  "(CONNECT_DATA=(SID=", ORAsid, ")))", sep = "")
-anshuoCon <- dbConnect(drvORA, username="xudan", password="y446ISd6MXAM", dbname = connect.string)
+
+
+if(sourceName=="Dabai"){
+  library(ROracle)
+  drvORA <- dbDriver("Oracle")
+  ORAhost <- "172.16.3.18"
+  ORAport <- 1521
+  ORAsid <- "orcl_std"
+  connect.string <- paste(
+    "(DESCRIPTION=",
+    "(ADDRESS=(PROTOCOL=tcp)(HOST=", ORAhost, ")(PORT=", ORAport, "))",
+    "(CONNECT_DATA=(SID=", ORAsid, ")))", sep = "")
+  anshuoCon <- dbConnect(drvORA, username="xudan", password="y446ISd6MXAM", dbname = connect.string)
+  anshuoq <- function(query) {
+    resultDF <- dbGetQuery(anshuoCon, query)
+    data.table(resultDF)
+  }
+}
+
+
 
 aeq <- function(query) {
   dbGetQuery(dmAnalCon, "SET NAMES 'GBK'")
@@ -89,13 +106,9 @@ martq <- function(query) {
 }
 
 jdzq <- function(query) {
-  dbGetQuery(dataMartCon, "SET NAMES 'GBK'")
+  dbGetQuery(jdzCon, "SET NAMES 'GBK'")
   resultDF <- dbGetQuery(jdzCon, query)
   data.table(resultDF)
 }
 
-anshuoq <- function(query) {
-  resultDF <- dbGetQuery(anshuoCon, query)
-  data.table(resultDF)
-}
 
