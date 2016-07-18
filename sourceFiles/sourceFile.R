@@ -1,7 +1,6 @@
 MISSING_DEFAULT <- -99999
 source("../sourceFiles/sourceFiles/generalFunction.R")
-boxjimu <- "E:/Seafiles/Jimu/"
-boxdata <- "E:/Seafiles/Jimu/Data/"
+boxdata <- "E:/Seafiles/Data/"
 
 # general
 library(RMySQL)
