@@ -1,7 +1,42 @@
+########################################################################################################## 
+# 变量筛选的其他维度
+ChisqTable <- function(DT, Y, exclude=NULL){
+  returnDF <- data.frame()
+  for(name in names(DT)){
+    if(!(name %in% exclude) & nrow(table(unlist(DT[, name, with=F])))>1){
+      print(name)
+      result <- chisq.test(unlist(DT[, name, with=F]), unlist(DT[, Y, with=F])) 
+      
+      result_rbind <- data.frame("varName"=name, "ScoreChisqStat"=result$statistic, "ChisqPValue"=result$p.value)
+      returnDF <- rbind(returnDF, result_rbind)
+    }
+  }
+  return(data.table(returnDF))
+}
+
+
+SpearmanTable <- function(DT, Y, exclude=NULL){
+  DT[, Y:=as.numeric(as.character(get(Y))), with=F]
+  returnDF <- data.frame()
+  for(name in names(DT)){
+    if(!(name %in% exclude) & nrow(table(unlist(DT[, name, with=F])))>1 & !is.factor(unlist(DT[, name, with=F]))){
+      print(name)
+      result <- cor.test(unlist(DT[, name, with=F]), unlist(DT[, Y, with=F]), method="spearman") 
+      
+      result_rbind <- data.frame("varName"=name, "SpearmanCor"=result$estimate, "SpearmanPValue"=result$p.value)
+      returnDF <- rbind(returnDF, result_rbind)
+    }
+  }
+  return(data.table(returnDF))
+}
+
+
+
+
 ########################################################################################################## WoE理论系列
 # categoricalDefault set to TRUE if want to automatically bin by the factor levels
 # Sample binning data table: data.table(1, c(1,2,3))
-woeCalc <- function(DT, X, Y, uniqueID="financingprojectid", binning=NULL, naZeroWoE=F, events=1, nonevents=0, printResult=T){
+woeCalc <- function(DT, X, Y, uniqueID="apply_id", binning=NULL, naZeroWoE=F, events=1, nonevents=0, printResult=T){
   isFactor <- FALSE
   isNumeric <- FALSE
   if(!(X %in% names(DT))){
@@ -17,9 +52,9 @@ woeCalc <- function(DT, X, Y, uniqueID="financingprojectid", binning=NULL, naZer
       resultCalc[, maxValue:=get(X)]
       resultCalc[, type:="categorical"]
     }else{
-      independent<-signif(independent, digits = 2)
+      independent<-signif(independent, digits = 5)
       groupsDF <- grouping(independent, groups = 10)
-      resultCalc[, X:=signif(get(X),2), with=F]
+      resultCalc[, X:=signif(get(X),5), with=F]
       resultCalc <- merge(resultCalc, groupsDF, by.x=X, by.y="dataVector", all.x=T)
       
       setnames(resultCalc, "groupMax", "maxValue")
@@ -43,14 +78,14 @@ woeCalc <- function(DT, X, Y, uniqueID="financingprojectid", binning=NULL, naZer
   }else{
     # 用于numeric的断点自定义分组
     isNumeric <- TRUE
-    independent<-signif(independent, digits = 2)
+    independent<-signif(independent, digits = 5)
     
     binDF <- data.table(value=independent, range=cut(independent, binning))
     binDFMax <- binDF[, .("groupMax"=max(value)), by="range"]
     binDF <- merge(binDF, binDFMax, by="range")
     binDF <- binDF[!duplicated(value),]
 
-    resultCalc[, X:=signif(get(X),2), with=F]
+    resultCalc[, X:=signif(get(X),5), with=F]
     resultCalc <- merge(resultCalc, binDF[, c("value", "groupMax"), with=F], by.x=X, by.y="value")
     
     setnames(resultCalc, "groupMax", "maxValue")
@@ -65,11 +100,12 @@ woeCalc <- function(DT, X, Y, uniqueID="financingprojectid", binning=NULL, naZer
                      by=c("maxValue","type")]
   result[, EventsPctg:=EventsCnt/sum(EventsCnt)]
   result[, NonEventsPctg:=NonEventsCnt/sum(NonEventsCnt)]
+  result[, logOdds:=log(EventsCnt/NonEventsCnt)]
   result[, WoE:=log(EventsPctg/NonEventsPctg)]
-  
+
   # 要是需要给missing的WoE全都assign成0, 就在这一步
   if(naZeroWoE){
-    result[maxValue<MISSING_DEFAULT+1 | maxValue==MISSING_DEFAULT, WoE:=0]
+    result[as.numeric(maxValue)<MISSING_DEFAULT+1 | maxValue==MISSING_DEFAULT, WoE:=0]
   }
   
   result[, IV:=sum((EventsPctg-NonEventsPctg)*WoE)]
@@ -89,6 +125,8 @@ woeCalc <- function(DT, X, Y, uniqueID="financingprojectid", binning=NULL, naZer
   ################################# 为了便于auto woe assigning
   #如果是factor变量,把woeVar list里面的maxValue(binning cutpoint)转回value(raw value), 使得后续assigning woe时候方便auto assign
   if(isFactor){
+    result[, maxValue:=as.character(maxValue)]
+    binning[, maxValue:=as.character(maxValue)]
     result <- merge(result, binning, by.x="maxValue", by.y="maxValue")
     result[, maxValue:=value]
     result[, value:=NULL]
@@ -97,13 +135,13 @@ woeCalc <- function(DT, X, Y, uniqueID="financingprojectid", binning=NULL, naZer
   #如果是numeric变量,把woeVar list里面最大的maxValue(binning cutpoint)变成一个足够大的数. 为了与character类型统一,不能用Inf和1e34
   if(isNumeric){
     result[, maxValue:=as.numeric(maxValue)]
-    result[maxValue==max(maxValue), maxValue:='9999999999']
+    result[maxValue==max(maxValue), maxValue:=INF_DEFAULT]
   }
 
   return(list(resultDT=DT, woeVar=result))
 }
 
-woeAutoBin <- function(DT, Y, binning=NULL, events=1, nonevents=0, exclude=c()){
+woeAutoBin <- function(DT, Y, uniqueID="apply_id", binning=NULL, events=1, nonevents=0, exclude=c()){
   result<-data.frame()
   tooFew<-c()
   for(name in names(DT)){
@@ -111,7 +149,7 @@ woeAutoBin <- function(DT, Y, binning=NULL, events=1, nonevents=0, exclude=c()){
       next
     print(name)
     if(name != Y){
-      newResult<-woeCalc(DT, name, Y, binning = binning, events = events, nonevents = nonevents, printResult = F)
+      newResult<-woeCalc(DT, name, Y, uniqueID, binning = binning, events = events, nonevents = nonevents, printResult = F)
       if(is.list(newResult)){
         DT<-newResult$resultDT
         result<-rbind(result, newResult$woeVar)

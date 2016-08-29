@@ -183,6 +183,7 @@ featureAnalysis <- function(DT, exclude, cateConv=F) {
   for(varName in names(DT)){
     if(!(varName %in% exclude)){
       if(!is.factor(unlist(DT[, varName, with=F])) & 
+         !is.double(unlist(DT[, varName, with=F])) &
          length(table(as.numeric(unlist(DT[, varName, with=F]))))>0){
         DT[, varName:=as.numeric(get(varName)), with=F]
       }
@@ -232,8 +233,8 @@ featureAnalysis <- function(DT, exclude, cateConv=F) {
                            NA, 
                            NA 
         )
-        names(newRow)<-names(result)
       }
+      names(newRow)<-names(result)
       result<-rbind(result, newRow)
     }
   }
@@ -279,6 +280,7 @@ naBlankInfer <- function(DT, column, inferFrom=c(NA, 'None', ''), inferTo=0){
   DT[get(column) %in% inferFrom, column:=as.character(inferTo), with=F]
 }
 
+# fullImpute=F就把所有的NA都变成默认值
 ggImpute <- function(DT, fullImpute=TRUE, removeMassiveMissing=TRUE){
   tooMuchMissingList <- c()
   imputeValueTable <- data.frame(col=as.character("name"), imputeValue=as.character("Value"), stringsAsFactors = F)
@@ -330,7 +332,7 @@ typeConverter <- function(DT, convList, typeTo){
     }else if(typeTo=="factor"){
       DT[, varName:=as.factor(get(varName)), with=F]
     }else if(typeTo=="numeric"){
-      DT[, varName:=as.numeric(get(varName)), with=F]
+      DT[, varName:=as.numeric(as.character(get(varName))), with=F]
     }
   }
 }  
