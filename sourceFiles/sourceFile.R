@@ -36,8 +36,8 @@ library(car)
 # Model validation
 library(hmeasure)
 library(InformationValue)
-
-
+library(woe)
+# library(riv)
 
 all_cons <- dbListConnections(MySQL())
 for(con in all_cons)
@@ -50,16 +50,16 @@ for(con in all_cons)
 # drivers
 drv <- dbDriver("MySQL")
 
-cp = c("/home/dx/hive_libs/hive-jdbc-1.2.1.jar", 
-       "/home/dx/hive_libs/hadoop-common-2.7.2.jar", 
-       "/home/dx/hive_libs/libthrift-0.9.2.jar", 
-       "/home/dx/hive_libs/hive-service-1.2.1.jar", 
-       "/home/dx/hive_libs/httpclient-4.4.jar", 
-       "/home/dx/hive_libs/httpcore-4.4.jar", 
-       "/home/dx/hive_libs/hive-jdbc-1.2.1-standalone.jar")
-.jinit(classpath=cp)
-hiveDrv <- JDBC("org.apache.hive.jdbc.HiveDriver", "/home/dx/hive_libs/hive-jdbc-1.2.1.jar", identifier.quote="`")
-
+# cp = c("/home/dx/hive_libs/hive-jdbc-1.2.1.jar", 
+#        "/home/dx/hive_libs/hadoop-common-2.7.2.jar", 
+#        "/home/dx/hive_libs/libthrift-0.9.2.jar", 
+#        "/home/dx/hive_libs/hive-service-1.2.1.jar", 
+#        "/home/dx/hive_libs/httpclient-4.4.jar", 
+#        "/home/dx/hive_libs/httpcore-4.4.jar", 
+#        "/home/dx/hive_libs/hive-jdbc-1.2.1-standalone.jar")
+# .jinit(classpath=cp)
+# hiveDrv <- JDBC("org.apache.hive.jdbc.HiveDriver", "/home/dx/hive_libs/hive-jdbc-1.2.1.jar", identifier.quote="`")
+# 
 
 ##################################
 # connections
@@ -91,7 +91,7 @@ if(sourceName=="Dabai"){
   }
 }
 
-hiveConn <- dbConnect(hiveDrv, "jdbc:hive2://172.19.4.13:10000/dsb","hdpstat","hdpstat")
+# hiveConn <- dbConnect(hiveDrv, "jdbc:hive2://172.19.4.13:10000/dsb","hdpstat","hdpstat")
 
 
 #################################
@@ -127,8 +127,8 @@ jdzq <- function(query) {
   data.table(resultDF)
 }
 
-hiveq <- function(query) {
-  dbGetQuery(hiveConn, "SET NAMES 'GBK'")
-  resultDF <- dbGetQuery(hiveConn, query)
-  data.table(resultDF)
-}
+# hiveq <- function(query) {
+#   dbGetQuery(hiveConn, "SET NAMES 'GBK'")
+#   resultDF <- dbGetQuery(hiveConn, query)
+#   data.table(resultDF)
+# }

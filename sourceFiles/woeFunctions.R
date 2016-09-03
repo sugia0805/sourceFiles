@@ -102,6 +102,7 @@ woeCalc <- function(DT, X, Y, uniqueID="apply_id", binning=NULL, naZeroWoE=F, ev
   result[, NonEventsPctg:=NonEventsCnt/sum(NonEventsCnt)]
   result[, logOdds:=log(EventsCnt/NonEventsCnt)]
   result[, WoE:=log(EventsPctg/NonEventsPctg)]
+  result[, eventsRate:=EventsCnt/TotalCnt]
 
   # 要是需要给missing的WoE全都assign成0, 就在这一步
   if(naZeroWoE){

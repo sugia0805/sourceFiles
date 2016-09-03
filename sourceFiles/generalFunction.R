@@ -40,24 +40,6 @@ strParse <- function(obj, targetText, regexpStopping=".*<", strStart=":", strEnd
   return(substr(sub,positionStart,positionEnd))
 }
 
-# Generate features from t_mod_score
-featureGen <- function(DT, modid, indexid, targetText, seqParam=1) {
-  if(seqParam==1){
-    DT[mod_id==modid&index_id==indexid, key:=targetText]
-    DT[mod_id==modid&index_id==indexid, value:=strParseV(input_val, targetText)]
-    DT[mod_id==modid&index_id==indexid, seq:=seqParam]
-    return(DT)
-  }else{
-    mid<-DT[mod_id==modid&index_id==indexid&seq==1,]
-    mid[, seq:=seqParam]
-    mid[, key:=targetText]
-    mid[, value:=strParseV(input_val, targetText)]
-    DT<-rbind(DT, mid)
-    return(DT)
-  }
-}
-
-
 
 ###################################################################################################### grouping 
 
@@ -76,48 +58,23 @@ grouping <- function(dataVector, groups=10){
 
 
 # 造个scoreband放在新的column里
-banding <- function(trainDT, columnValue, columnBand, columnTarget = NULL, bands=seq(0, 1, 0.1)){
-  trainDT[, columnBand:=as.integer(cut(get(columnValue), quantile(get(columnValue), probs=bands, na.rm=T), include.lowest=TRUE)), with=F]
-  scoreTable1 <- trainDT[, .("maxScore"=max(get(columnValue))
-                       ,"minScore"=min(get(columnValue))
+banding <- function(trainDT, scoreColumn, bandName, flgDPDColumn = NULL, nBands=10){
+  trainDT[, bandName:=as.integer(cut(get(scoreColumn), quantile(get(scoreColumn), probs=seq(0, 1, 1/nBands), na.rm=T), include.lowest=TRUE)), with=F]
+  scoreTable1 <- trainDT[, .("maxScore"=max(get(scoreColumn))
+                       ,"minScore"=min(get(scoreColumn))
                        ,"totalCust"=.N
                        ),
-                   by=c(columnBand)]
-  if(!is.null(columnTarget)){
-    scoreTable2 <- trainDT[, .("badCust"=sum(as.numeric(as.character(get(columnTarget))))),
-                           by=c(columnBand)]
-    scoreTable <- merge(scoreTable1, scoreTable2, by=columnBand)
+                   by=c(bandName)]
+  if(!is.null(flgDPDColumn)){
+    scoreTable2 <- trainDT[, .("badCust"=sum(as.numeric(as.character(get(flgDPDColumn))))),
+                           by=c(bandName)]
+    scoreTable <- merge(scoreTable1, scoreTable2, by=bandName)
     scoreTable[, badRate:=badCust/totalCust]
     return(scoreTable)
   }
   
-  # if(!is.null(testDT)){
-  #   for(i in 1:nrow(scoreTable)){
-  #     DT[get(columnValue) <= scoreTable[i,]$maxScore & get(columnValue) >= scoreTable[i,]$minScore, woeTransName:=assignWoE[i,]$WoE, with=F]
-  #   }
-  # }
+
   return(scoreTable1)
-}
-
-
-myKS <- function(DT, scoreColName, scoreBandColName = "scoreBand", flgVar = "flgDPD", bandKS=seq(0,1,0.1)){
-  banding(DT, scoreColName, scoreBandColName, bands=bandKS)
-  DTPivot <- DT[, .("bad"=sum(get(flgVar)),
-                    "total"=.N),
-                  by=scoreBandColName]
-  DTPivot[, badRate:=bad/total]
-  DTPivot[, good:=total-bad]
-  totalBad <- sum(DTPivot$bad)
-  totalGood <- sum(DTPivot$good)
-  DTPivot[, segBad:=bad/totalBad]
-  DTPivot[, segGood:=good/totalGood]
-  setorderv(DTPivot, scoreBandColName, order=1)
-  DTPivot[, cumBad:=runSum(segBad, n=1, cumulative = T)]
-  DTPivot[get(scoreBandColName)==1, cumBad:=segBad]
-  DTPivot[, cumGood:=runSum(segGood, n=1, cumulative = T)]
-  DTPivot[get(scoreBandColName)==1, cumGood:=segGood]
-  ks <- max(DTPivot$cumBad-DTPivot$cumGood)
-  return(ks)
 }
 
 myPSI <- function(DTOld, DTNew, binColName, bandPSI=seq(0,1,0.1)){
@@ -252,23 +209,8 @@ sampleMissingAnalysis <- function(DT, IDRow) {
   return(result)
 }
 
-printTable <- function(DT){
-  for(name in names(DT)){
-    print(name)
-    print(table(DT[, name, with=F]))
-  }
-}
-
 
 ######################################################################################################## Impute
-# table()的GUI版本
-viewAllValues <- function(DT, column){
-  result<-table(DT[, column, with=F], useNA = "ifany")
-  result<-data.table(result)
-  setnames(result, "V1", names(DT[, column, with=F]))
-  View(result)
-}
-
 # 判断是否alpha-numeric，不是的话就是中文字符
 isAlphaNum <- Vectorize(function(str){
   result<-ifelse(length(charToRaw(substr(str, 1, 1)))==1, 1, 0)
@@ -336,18 +278,6 @@ typeConverter <- function(DT, convList, typeTo){
     }
   }
 }  
-
-
-##############################
-# targetGen <- function(DT, DaysPerformance=90, DQDays4Black=30, DQDays4White=7){
-#   in90days <- DT[, .(maxDaysFromDD = max(daysFromDD)), by="projectid"]
-#   hasEnoughPerformance <- in90days[maxDaysFromDD>=90, ]
-#   DT <- DT[projectid %in% hasEnoughPerformance$projectid & daysFromDD<=90, ]
-#   DT[, EverDPD15:=ifelse(Cur_Overdue_Days==15, 1, 0)]
-#   DT[, EverDPD07:=ifelse(Cur_Overdue_Days==7, 1, 0)]
-#   DT[, , by="project_id"]
-# }
-
 
 
 
