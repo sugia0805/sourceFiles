@@ -59,7 +59,7 @@ grouping <- function(dataVector, groups=10){
 
 # 造个scoreband放在新的column里
 banding <- function(trainDT, scoreColumn, bandName, flgDPDColumn = NULL, nBands=10){
-  trainDT[, bandName:=as.integer(cut(get(scoreColumn), quantile(get(scoreColumn), probs=seq(0, 1, 1/nBands), na.rm=T), include.lowest=TRUE)), with=F]
+  trainDT[, bandName:=as.integer(findInterval(get(scoreColumn), quantile(get(scoreColumn), probs=seq(0, 1, 1/nBands), na.rm=T), rightmost.closed = T)), with=F]
   scoreTable1 <- trainDT[, .("maxScore"=max(get(scoreColumn))
                        ,"minScore"=min(get(scoreColumn))
                        ,"totalCust"=.N

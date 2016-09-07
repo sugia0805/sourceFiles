@@ -80,7 +80,7 @@ woeCalc <- function(DT, X, Y, uniqueID="apply_id", binning=NULL, naZeroWoE=F, ev
     isNumeric <- TRUE
     independent<-signif(independent, digits = 5)
     
-    binDF <- data.table(value=independent, range=cut(independent, binning))
+    binDF <- data.table(value=independent, range=findInterval(independent, binning))
     binDFMax <- binDF[, .("groupMax"=max(value)), by="range"]
     binDF <- merge(binDF, binDFMax, by="range")
     binDF <- binDF[!duplicated(value),]
