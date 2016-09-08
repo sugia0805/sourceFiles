@@ -1,5 +1,6 @@
 
 source("../sourceFiles//sourceFiles/woeFunctions.R")
+source("../sourceFiles//sourceFiles/ExcelFinance.R")
 
 
 monthDiff <- Vectorize(function(startMth, endMth){
@@ -14,7 +15,7 @@ Mode <- function(x, na.rm=F) {
   ux[which.max(tabulate(match(x, ux)))]
 }
 
-myNPV <- function(TicketSize, UpfrontFee=0.02, Tenor, feeRate, COF, CORate, PrepayRate, ApprovalRate, TakeupRate, MKTCost, DataCost, CPS = T){
+myRAM <- function(TicketSize, UpfrontFee=0.02, Tenor, feeRate, COF, CORate, PrepayRate, ApprovalRate, TakeupRate, MKTCost, DataCost, CPS = T){
   NormalPaidPrincipal = 0
   
   # Revenue & C/O, Prepay at before 1st payment
@@ -30,15 +31,12 @@ myNPV <- function(TicketSize, UpfrontFee=0.02, Tenor, feeRate, COF, CORate, Prep
     }
     
     PerformingDDPrincipal = PerformingDDPrincipal - CORate*(log(i+1)-log(i))/log(Tenor+1) - PrepayRate/Tenor - PerformingDDPrincipal/Tenor
-    NormalPaidPrincipal = NormalPaidPrincipal + 
+    NormalPaidPrincipal = NormalPaidPrincipal + PPMT(COF/12, i, Tenor, -1)
   }
   
-  E2ERate <- ApprovalRate * TakeupRate
+  GrossMargin = Revenue - CORate
+  return(GrossMargin*TicketSize)
   
-  GrossMargin <- feeRate* Tenor +  UpfrontFee - CORate/12*Tenor
-  NOI <- GrossMargin - ifelse(CPS, MKTCost, (MKTCost/E2ERate)/TicketSize) - (UWCost/E2ERate)/TicketSize
-  NPV <- TicketSize * NOI
-  return(NPV)
 }
 
 ######################################################################################################## Parse 
