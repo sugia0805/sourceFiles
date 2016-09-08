@@ -197,7 +197,7 @@ woeAssignAuto <- function(DT, binningDF){
 ################################################# Assigning scores
 # input: assiningDF from woeCalc/woeAutoBin; glm model from model development step
 # output: assiningDF with scores for each score range attached aside woe
-scoreCalc <- function(binningDF, lmModel, neutralForMissing=T, b=500, p=50, o=0.2){
+scoreCalc <- function(binningDF, lmModel, neutralForMissing=T, b=660, p=100, o=0.1){
   Beta <- lmModel$coefficients
   n <- length(Beta[names(Beta) != '(Intercept)'])
   Intercept <- Beta[names(Beta) == '(Intercept)']  
@@ -214,13 +214,13 @@ scoreCalc <- function(binningDF, lmModel, neutralForMissing=T, b=500, p=50, o=0.
   
   # 计算每个变量的评分, reverse the WoE part to make lower scores unfavorable
   if(neutralForMissing){
-    scoreDF[, varScore:= ifelse(maxValue==MISSING_DEFAULT, 0, -1)*coefficient*WoE*Factor]
+    scoreDF[, varScore:= ifelse(maxValue==MISSING_DEFAULT, 0, 1)*(log(o)*Factor/n - (coefficient*WoE + Intercept/n)*Factor)]
   }else{
-    scoreDF[, varScore:= -coefficient*WoE*Factor]
+    scoreDF[, varScore:= log(o)*Factor/n - (coefficient*WoE + Intercept/n)*Factor]
   }
   print(paste0("factor= ", Factor, "; 
                offset= ", Offset, ";
-               Intercept= ", -Factor*Intercept+Offset))
+               Base Point= ", b))
   return(list(scoreDF=scoreDF, Intercept=-Factor*Intercept+Offset))
 }
 
@@ -249,8 +249,8 @@ scoreAssign <- function(DT, scoreColName, scoringDF){
   return(DT)
 }
 
-scoreAssignAuto <- function(DT, scoringDF, intercept){
-  DT[, s_totalScore:=intercept]
+scoreAssignAuto <- function(DT, scoringDF, baseScore){
+  DT[, s_totalScore:=baseScore]
   for(name in names(DT)){
     DT <- scoreAssign(DT, name, scoringDF)
   }

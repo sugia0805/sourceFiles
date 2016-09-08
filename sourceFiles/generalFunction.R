@@ -14,7 +14,25 @@ Mode <- function(x, na.rm=F) {
   ux[which.max(tabulate(match(x, ux)))]
 }
 
-myNPV <- function(TicketSize, feeRate, Tenor, UpfrontFee, CORate, MKTCost, UWCost, ApprovalRate, TakeupRate, CPS = T){
+myNPV <- function(TicketSize, UpfrontFee=0.02, Tenor, feeRate, COF, CORate, PrepayRate, ApprovalRate, TakeupRate, MKTCost, DataCost, CPS = T){
+  NormalPaidPrincipal = 0
+  
+  # Revenue & C/O, Prepay at before 1st payment
+  Revenue = UpfrontFee + (PrepayRate/Tenor)*(1-NormalPaidPrincipal)*0.04
+  PerformingDDPrincipal = 1 - CORate*log(2)/log(Tenor+1) - PrepayRate/Tenor
+  
+  # Revenue & C/O Prepay loop thru life cycle
+  for(i in 1:Tenor){
+    if(i<=2){
+      Revenue = Revenue + PerformingDDPrincipal*feeRate + (PrepayRate/Tenor)*(1-NormalPaidPrincipal)*0.04
+    }else{
+      Revenue = Revenue + PerformingDDPrincipal*feeRate + (PrepayRate/Tenor)*(1-NormalPaidPrincipal)*0.03
+    }
+    
+    PerformingDDPrincipal = PerformingDDPrincipal - CORate*(log(i+1)-log(i))/log(Tenor+1) - PrepayRate/Tenor - PerformingDDPrincipal/Tenor
+    NormalPaidPrincipal = NormalPaidPrincipal + 
+  }
+  
   E2ERate <- ApprovalRate * TakeupRate
   
   GrossMargin <- feeRate* Tenor +  UpfrontFee - CORate/12*Tenor
@@ -58,8 +76,12 @@ grouping <- function(dataVector, groups=10){
 
 
 # 造个scoreband放在新的column里
-banding <- function(trainDT, scoreColumn, bandName, flgDPDColumn = NULL, nBands=10){
-  trainDT[, bandName:=as.integer(findInterval(get(scoreColumn), quantile(get(scoreColumn), probs=seq(0, 1, 1/nBands), na.rm=T), rightmost.closed = T)), with=F]
+banding <- function(trainDT, scoreColumn, bandName, flgDPDColumn = NULL, nBands=10, vec=NULL){
+  if(is.null(vec)){
+    trainDT[, bandName:=as.integer(findInterval(get(scoreColumn), quantile(get(scoreColumn), probs=seq(0, 1, 1/nBands), na.rm=T), rightmost.closed = T)), with=F]
+  }else{
+    trainDT[, bandName:=as.integer(findInterval(get(scoreColumn), vec=vec, rightmost.closed = T)), with=F]
+  }
   scoreTable1 <- trainDT[, .("maxScore"=max(get(scoreColumn))
                        ,"minScore"=min(get(scoreColumn))
                        ,"totalCust"=.N
