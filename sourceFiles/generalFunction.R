@@ -15,7 +15,7 @@ Mode <- function(x, na.rm=F) {
   ux[which.max(tabulate(match(x, ux)))]
 }
 
-myRAM <- function(TicketSize, UpfrontFee=0.02, Tenor, feeRate, COF, CORate, PrepayRate, ApprovalRate, TakeupRate, MKTCost, DataCost, CPS = T){
+myRAM <- Vectorize(function(TicketSize, UpfrontFee=0.02, Tenor, feeRate, COF, CORate, PrepayRate){
   NormalPaidPrincipal = 0
   
   # Revenue & C/O, Prepay at before 1st payment
@@ -36,6 +36,69 @@ myRAM <- function(TicketSize, UpfrontFee=0.02, Tenor, feeRate, COF, CORate, Prep
   
   GrossMargin = Revenue - CORate
   return(GrossMargin*TicketSize)
+  
+})
+
+cutoffSimulator <- function(param_scoredOOS, param_pricingTable, cutoff = -Inf, bands=7, flgDPD_DPD90_FlowRate=0.5){
+  
+  param_RAM_scoredOOS <- param_scoredOOS[NewScore>=cutoff, ]
+  param_Declined_scoredOOS <- param_scoredOOS[NewScore<cutoff, ]
+  param_LineAssignmentTable <- param_pricingTable[, .("LineAssignment"=min(LineAssignment), "MinTenor"=min(Tenor), "MaxTenor"=max(Tenor)), 
+                                                  by="RiskBand"]
+
+  portfolioDPD90 <- sum(as.numeric(as.character(param_RAM_scoredOOS$flgDPD)))/nrow(param_RAM_scoredOOS)*flgDPD_DPD90_FlowRate
+
+        # 给risk score并成band
+  if(is.numeric(bands)){
+    banding(param_RAM_scoredOOS, "NewScore", "scoreBand", nBands = bands)
+  }else if(is.vector(bands)){
+    banding(param_RAM_scoredOOS, "NewScore", "scoreBand", vec = bands)
+  }else{
+    return("bands参数只接受vector和numeric变量!")
+  }
+  param_RAM_scoredOOS <- rbind(param_RAM_scoredOOS, param_Declined_scoredOOS[, scoreBand:=0])
+  
+  # 给每个account按照所在risk band加上approved的line assignment, 同时给出tenor的上下限. 给出最终批复的金额和期限
+  param_RAM_scoredOOS <- merge(param_RAM_scoredOOS, param_LineAssignmentTable, by.x="scoreBand", by.y="RiskBand", all.x=T)
+  
+  
+  # 判定最终放款的期限和tenor
+  param_RAM_scoredOOS[, DDAmount:=ifelse(scoreBand==0, 0, 
+                                         ifelse(ApplicationAmount<LineAssignment, ApplicationAmount, LineAssignment))]
+  param_RAM_scoredOOS[, DDTenor:=ifelse(scoreBand==0, 0, 
+                                        ifelse(ApplicationTenor<MinTenor, MinTenor, 
+                                               ifelse(ApplicationTenor>MaxTenor, MaxTenor, ApplicationTenor)))]
+  # param_RAM_scoredOOS[, c("ApplicationAmount", "ApplicationTenor","MinTenor","MaxTenor"):=NULL]
+  
+  
+  # 将risk band做group by, 做成risk segments
+  param_RAM_bandedOOS_DPD <- param_RAM_scoredOOS[, .("maxScore"=max(NewScore), 
+                                                     "minScore"=min(NewScore),
+                                                     "totalCnt"=.N,
+                                                     "DPD"=sum(as.numeric(as.character(flgDPD)))
+  ),
+  by=c("scoreBand")]
+  param_RAM_bandedOOS_DPD[, DPD90_Rate:=(DPD/totalCnt) * flgDPD_DPD90_FlowRate]
+  
+  # 将tenor, scoreband做group by, 做成npv segments
+  param_RAM_bandedOOS_NPV <- param_RAM_scoredOOS[, .("avgDDAmount"=mean(DDAmount), "totalCnt"=.N), by=c("scoreBand","DDTenor")]
+  
+  # 将risk segment的DPD数据加入NPV segment
+  param_RAM_bandedOOS <- merge(param_RAM_bandedOOS_NPV, param_RAM_bandedOOS_DPD[, -c("totalCnt","DPD"), with=F], by.x="scoreBand", by.y="scoreBand")
+  
+  # 给NPV大表的各个risk band的每个tenor加上五档pricing
+  param_RAM_bandedOOS <- merge(param_RAM_bandedOOS, param_pricingTable, by.x=c("scoreBand","DDTenor"), by.y=c("RiskBand","Tenor"), all.x = T)
+  
+  # 算RAM
+  param_RAM_bandedOOS[scoreBand>0, RAMperAcct:=myRAM(TicketSize = LineAssignment, UpfrontFee = 0.02, Tenor = DDTenor, feeRate = FeeRate, 
+                                                     COF = COF, CORate = DPD90_Rate, PrepayRate = 0)]
+  param_RAM_bandedOOS[scoreBand>0, waTotalCnt:=totalCnt*FeeBandPctg]
+  param_RAM_bandedOOS[scoreBand>0, waRAM:=waTotalCnt*RAMperAcct]
+  
+  totalRAM = sum(param_RAM_bandedOOS$waRAM, na.rm=T)
+  waRAM = totalRAM/sum(param_RAM_bandedOOS$waTotalCnt, na.rm=T)
+  
+  return(list("RAMTable"=param_RAM_bandedOOS, "RAMperAcct"=waRAM, "RAMTotal"=totalRAM, "PortfolioDPD90"=portfolioDPD90))
   
 }
 
