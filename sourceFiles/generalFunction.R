@@ -48,7 +48,7 @@ cutoffSimulator <- function(param_scoredOOS, param_pricingTable, cutoff = -Inf, 
 
   portfolioDPD90 <- sum(as.numeric(as.character(param_RAM_scoredOOS$flgDPD)))/nrow(param_RAM_scoredOOS)*flgDPD_DPD90_FlowRate
 
-        # 给risk score并成band
+  # 给risk score并成band
   if(is.numeric(bands)){
     banding(param_RAM_scoredOOS, "NewScore", "scoreBand", nBands = bands)
   }else if(is.vector(bands)){
@@ -91,7 +91,7 @@ cutoffSimulator <- function(param_scoredOOS, param_pricingTable, cutoff = -Inf, 
   
   # 算RAM
   param_RAM_bandedOOS[scoreBand>0, RAMperAcct:=myRAM(TicketSize = LineAssignment, UpfrontFee = 0.02, Tenor = DDTenor, feeRate = FeeRate, 
-                                                     COF = COF, CORate = DPD90_Rate, PrepayRate = 0)]
+                                                     COF = COF, CORate = DPD90_Rate, PrepayRate = PrepayRate)]
   param_RAM_bandedOOS[scoreBand>0, waTotalCnt:=totalCnt*FeeBandPctg]
   param_RAM_bandedOOS[scoreBand>0, waRAM:=waTotalCnt*RAMperAcct]
   
